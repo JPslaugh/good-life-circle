@@ -215,6 +215,19 @@ body.mode-results .toolbar{position:static}
 @media (prefers-reduced-motion:reduce){.page-enter-fwd,.page-enter-back,.page-leave{animation:none}}
 @media print{.tabbar{display:none !important}.page{display:block !important}#pages{position:static}.page-leave{display:none !important}}
 
+/* all-subsections wheel */
+#allWheel .sub-slice{transition:transform .18s cubic-bezier(.34,1.4,.5,1);cursor:pointer}
+#allWheel .sub-hit{fill:#000;fill-opacity:0;cursor:pointer}
+.allinfo{margin-top:6px;min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:3px}
+.allinfo-hint{color:var(--muted);font-size:13px;font-style:italic}
+.allinfo .ai-name{font-size:17px;font-weight:700;display:inline-flex;align-items:center;gap:9px}
+.allinfo .ai-name .dot{width:13px;height:13px;border-radius:50%}
+.allinfo .ai-sec{font-size:12.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.allinfo .ai-stats{font-size:14px;margin-top:2px}
+.allinfo .ai-stats b{font-weight:700}
+.allinfo .ai-imp{color:var(--accent)}
+.allinfo .ai-gap{color:var(--warn)}
+
 /* ---------- Print ---------- */
 @media print{
   :root{--shadow:none}
@@ -329,6 +342,19 @@ body.mode-results .toolbar{position:static}
         <h2>What your results suggest</h2>
         <div class="sub">Reflections drawn from the gaps between what matters to you and how satisfied you feel.</div>
         <div id="insights"></div>
+      </section>
+    </div>
+
+    <!-- ===== ALL SUBSECTIONS PAGE ===== -->
+    <div class="page" id="page-allsubs">
+      <section class="card">
+        <div class="section-rule" style="background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3),var(--c4),var(--c5),var(--c6))"></div>
+        <h2>Every Subsection at a Glance</h2>
+        <div class="sub">One wheel, every subcategory across all six sections — grouped and colour-coded by section. Slice width is its <strong>importance</strong> (share of everything that matters to you); the fill is your <strong>satisfaction</strong>. <strong>Hover any slice</strong> to enlarge it and see its details.</div>
+        <div class="wheel-wrap">
+          <svg id="allWheel" viewBox="-80 -40 760 680" role="img" aria-label="All subsections wheel" style="overflow:visible"></svg>
+          <div id="allHoverInfo" class="allinfo"><span class="allinfo-hint">Hover a slice to see its name, importance and gap.</span></div>
+        </div>
       </section>
     </div>
 
@@ -690,11 +716,12 @@ const App = (() => {
 
   /* ---------- Tabbed pages + drill-down ---------- */
   let activeTab="overview";
-  const TAB_ORDER=["overview", ...CATEGORIES.map(c=>c.id)];
+  const TAB_ORDER=["overview","allsubs", ...CATEGORIES.map(c=>c.id)];
 
   function buildTabsAndPages(){
     const bar=document.getElementById("tabBar"); if(!bar) return;
     let html=`<button class="tab" data-tab="overview" data-color="#2e5e7e" onclick="App.switchTab('overview')"><span class="dot" style="background:#2e5e7e"></span>Overview</button>`;
+    html+=`<button class="tab" data-tab="allsubs" data-color="#475569" onclick="App.switchTab('allsubs')"><span class="dot" style="background:linear-gradient(90deg,var(--c1),var(--c3),var(--c5))"></span>All Subsections</button>`;
     CATEGORIES.forEach(c=>{ html+=`<button class="tab" data-tab="${c.id}" data-color="${c.hex}" onclick="App.switchTab('${c.id}')"><span class="dot" style="background:${c.hex}"></span>${c.name}</button>`; });
     bar.innerHTML=html;
     document.getElementById("sectionPages").innerHTML=CATEGORIES.map(sectionPageHTML).join("");
@@ -740,6 +767,80 @@ const App = (() => {
       <div class="stat"><div class="k">Biggest gap here</div><div class="v" style="color:var(--warn);font-size:18px">${top.label}</div><div class="d">${top.unmet>0.1?Math.round((1-top.sat/10)*100)+"% of what matters is unmet":"fully met"}</div></div>`;
     breakEl.innerHTML=breakdownRowsHTML(segs);
   }
+
+  /* ---------- All-subsections combined wheel ---------- */
+  let allSubData=[];   // [{label, sectionName, sectionId, hex, imp, sat, a0, a1, mid}]
+  function renderAllSubs(){
+    const svg=document.getElementById("allWheel"); if(!svg) return;
+    const cx=300,cy=300,R=220;
+    // gather every subsection, grouped by section, coloured as shades of the section hue
+    const items=[];
+    CATEGORIES.forEach(cat=>{
+      if(!state.locked[cat.id]) return;
+      const subs=subSegments(cat); if(!subs.length) return;
+      const cols=shades(cat.hex, subs.length);
+      subs.forEach((sg,i)=>items.push({label:sg.label, sectionName:cat.name, sectionId:cat.id, hex:cols[i], imp:sg.imp, sat:sg.sat}));
+    });
+    const total=items.reduce((a,d)=>a+d.imp,0);
+    let s="";
+    for(let k=2;k<=10;k+=2){ const rr=R*Math.sqrt(k/10); s+=`<circle cx="${cx}" cy="${cy}" r="${rr}" fill="none" stroke="${k===10?'#c3cfdb':'#eef2f6'}" stroke-width="${k===10?1.4:1}"/>`; }
+    if(total<=0){ svg.innerHTML=s; allSubData=[]; return; }
+
+    // assign angles; track section spans for outer labels and boundaries
+    let a0=0; const secSpan={};
+    items.forEach((d,i)=>{ const sweep=360*d.imp/total; d.a0=a0; d.a1=a0+sweep; d.mid=a0+sweep/2; d.idx=i;
+      if(!secSpan[d.sectionId]) secSpan[d.sectionId]={start:a0,hex:CATEGORIES.find(c=>c.id===d.sectionId).hex,name:d.sectionName};
+      secSpan[d.sectionId].end=d.a1; a0=d.a1; });
+    allSubData=items;
+
+    // slices (each its own group so we can pop it on hover)
+    items.forEach(d=>{
+      const rFill=R*Math.sqrt(d.sat/10);
+      s+=`<g class="sub-slice" id="ss-${d.idx}" style="transform-origin:${cx}px ${cy}px">
+        <path d="${wedge(cx,cy,R,d.a0,d.a1)}" fill="${d.hex}" fill-opacity="0.16"/>
+        <path d="${wedge(cx,cy,rFill,d.a0,d.a1)}" fill="${d.hex}" fill-opacity="0.78"/>
+      </g>`;
+    });
+    // sub-slice dividers (light) then section dividers (heavier)
+    items.forEach(d=>{ const [x,y]=polar(cx,cy,R,d.a0); s+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#fff" stroke-width="1"/>`; });
+    Object.values(secSpan).forEach(v=>{ const [x,y]=polar(cx,cy,R,v.start); s+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#8595a6" stroke-width="1.8"/>`; });
+    s+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#9fb0c0" stroke-width="2"/>`;
+    s+=`<circle cx="${cx}" cy="${cy}" r="3" fill="#7f8c9b"/>`;
+
+    // section name labels around the outside, at each section arc's mid
+    Object.values(secSpan).forEach(v=>{
+      const mid=(v.start+v.end)/2; const [lx,ly]=polar(cx,cy,R+30,mid);
+      const anchor=(mid>8&&mid<172)?"start":(mid>188&&mid<352)?"end":"middle";
+      const words=v.name.split(" "); let lines=[v.name];
+      if(v.name.length>11&&words.length>1){ const mp=Math.ceil(words.length/2); lines=[words.slice(0,mp).join(" "),words.slice(mp).join(" ")]; }
+      const dy0=lines.length>1?-3:5;
+      s+=`<text x="${lx}" y="${ly}" text-anchor="${anchor}" font-size="14" font-weight="700" fill="${v.hex}">`;
+      lines.forEach((ln,k)=>{ s+=`<tspan x="${lx}" dy="${k===0?dy0:15}">${ln}</tspan>`; }); s+=`</text>`;
+    });
+    // transparent hit wedges on top with hover handlers
+    items.forEach(d=>{ s+=`<path class="sub-hit" d="${wedge(cx,cy,R,d.a0,d.a1)}" onmouseenter="App.hoverSub(${d.idx})" onmouseleave="App.unhoverSub()" onclick="App.switchTab('${d.sectionId}')"></path>`; });
+
+    svg.innerHTML=s;
+    unhoverSub();
+  }
+  function hoverSub(i){
+    const d=allSubData[i]; if(!d) return;
+    const cx=300,cy=300, dist=20, rad=(d.mid-90)*Math.PI/180;
+    const dx=Math.cos(rad)*dist, dy=Math.sin(rad)*dist;
+    allSubData.forEach(o=>{ const g=document.getElementById("ss-"+o.idx); if(g){ g.style.transform=""; g.style.opacity=(o.idx===i)?"1":"0.45"; } });
+    const g=document.getElementById("ss-"+i); if(g){ g.style.transform=`translate(${dx}px,${dy}px) scale(1.08)`; }
+    const impPct=Math.round(d.imp/allSubData.reduce((a,o)=>a+o.imp,0)*100);
+    const gapPct=Math.round((1-d.sat/10)*100);
+    document.getElementById("allHoverInfo").innerHTML=
+      `<div class="ai-sec">${d.sectionName}</div>
+       <div class="ai-name"><span class="dot" style="background:${d.hex}"></span>${d.label}</div>
+       <div class="ai-stats"><span class="ai-imp"><b>${impPct}%</b> of what matters</span> &nbsp;·&nbsp; <span class="ai-gap"><b>${gapPct}%</b> gap</span></div>`;
+  }
+  function unhoverSub(){
+    allSubData.forEach(o=>{ const g=document.getElementById("ss-"+o.idx); if(g){ g.style.transform=""; g.style.opacity="1"; } });
+    const info=document.getElementById("allHoverInfo"); if(info) info.innerHTML=`<span class="allinfo-hint">Hover a slice to see its name, importance and gap.</span>`;
+  }
+
   function setActiveTab(key){
     document.querySelectorAll("#tabBar .tab").forEach(t=>{
       const on=t.dataset.tab===key;
@@ -855,6 +956,7 @@ const App = (() => {
 
     // render each section's own page (sub-wheels) so tab switches are instant
     CATEGORIES.forEach(renderSectionPage);
+    renderAllSubs();
   }
 
   /* ---------- Persistence ---------- */
@@ -891,7 +993,7 @@ const App = (() => {
     showForm();
   }
 
-  return { set, touch, toggleItem, toggleGroup, toggleLock, switchTab, openDrillByIndex, showResults, showForm, downloadPDF, reset, init(){ load(); buildTabsAndPages(); } };
+  return { set, touch, toggleItem, toggleGroup, toggleLock, switchTab, openDrillByIndex, hoverSub, unhoverSub, showResults, showForm, downloadPDF, reset, init(){ load(); buildTabsAndPages(); } };
 })();
 
 document.addEventListener("DOMContentLoaded", App.init);
