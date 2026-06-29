@@ -319,7 +319,7 @@ body.mode-results .toolbar{position:static}
       <section class="card">
         <div class="section-rule" style="background:var(--c4)"></div>
         <h2>Where the gaps are, by area</h2>
-        <div class="sub">Each bar's full length is your <strong>importance</strong> for that area (its ceiling); the solid fill is what you've <strong>realized</strong> — satisfaction relative to that ceiling. The patterned remainder is the unmet gap. Sorted biggest gap first.</div>
+        <div class="sub">Each bar's full length is your <strong>importance</strong> for that area (its ceiling); the solid fill is what you've <strong>realized</strong> — satisfaction relative to that ceiling. The percentage on the right is the <strong>gap</strong>: how much of what matters here is still unmet. Sorted biggest gap first.</div>
         <div class="breakdown" id="breakdown"></div>
         <div class="bkey"><span><i class="imp"></i>Importance (ceiling)</span><span><i class="sat"></i>Realized</span><span><i style="width:18px;height:11px;border-radius:3px;display:inline-block;border:1px solid var(--line-strong)"></i>Empty = beyond what you need</span></div>
       </section>
@@ -620,7 +620,7 @@ const App = (() => {
         s+=`<path d="${wedge(cx,cy,rFill,a0,a1)}" fill="${g.hex}" fill-opacity="0.72"/>`;
         // satisfaction number inside the fill
         const [tx,ty]=polar(cx,cy,Math.max(rFill-14,26),mid);
-        s+=`<text x="${tx}" y="${ty+4}" text-anchor="middle" font-size="14" font-weight="700" fill="#fff" style="paint-order:stroke" stroke="${g.hex}" stroke-width="3">${g.sat.toFixed(1)}</text>`;
+        s+=`<text x="${tx}" y="${ty+4}" text-anchor="middle" font-size="14" font-weight="700" fill="#fff" style="paint-order:stroke" stroke="${g.hex}" stroke-width="3">${Math.round(g.sat*10)}%</text>`;
         // outer label
         const [lx,ly]=polar(cx,cy,R+24,mid);
         const anchor=(mid>8&&mid<172)?"start":(mid>188&&mid<352)?"end":"middle";
@@ -676,12 +676,13 @@ const App = (() => {
   /* ---------- Shared breakdown-bar renderer ---------- */
   function breakdownRowsHTML(rows){
     return rows.map(r=>({...r, unmet:r.imp-(r.imp*r.sat/10)})).sort((a,b)=>b.unmet-a.unmet).map(r=>{
-      const impW=r.imp*10, realizedW=r.imp*r.sat, u=r.unmet;
-      const col=u>=4?"#c0392b":u>=2.5?"#d97b29":u>=1?"#caa12a":"#2e8b57";
+      const impW=r.imp*10, realizedW=r.imp*r.sat;
+      const gapPct=Math.round((1-r.sat/10)*100);   // % of this area's importance still unmet
+      const col=gapPct>=60?"#c0392b":gapPct>=35?"#d97b29":gapPct>=15?"#caa12a":"#2e8b57";
       return `<div class="brow">
         <div class="blabel"><i style="background:${r.hex}"></i>${r.label}</div>
         <div class="btrack"><div class="imp" style="width:${impW}%"></div><div class="sat" style="width:${realizedW}%;background:${r.hex}"></div></div>
-        <div class="bgap" style="color:${col}">${u>0.1?"−"+u.toFixed(1):"✓"}</div>
+        <div class="bgap" style="color:${col}">${gapPct>=3?gapPct+"%":"✓"}</div>
       </div>`;
     }).join("");
   }
@@ -735,7 +736,7 @@ const App = (() => {
     const top=segs.map(d=>({...d,unmet:d.imp-(d.imp*d.sat/10)})).sort((a,b)=>b.unmet-a.unmet)[0];
     statsEl.innerHTML=`
       <div class="stat"><div class="k">Section Happiness</div><div class="v">${happ}<span style="font-size:15px;color:var(--muted)">%</span></div><div class="d">within ${cat.name}</div></div>
-      <div class="stat"><div class="k">Biggest gap here</div><div class="v" style="color:var(--warn);font-size:18px">${top.label}</div><div class="d">${top.unmet>0.1?top.unmet.toFixed(1)+" of what matters is unmet":"fully met"}</div></div>`;
+      <div class="stat"><div class="k">Biggest gap here</div><div class="v" style="color:var(--warn);font-size:18px">${top.label}</div><div class="d">${top.unmet>0.1?Math.round((1-top.sat/10)*100)+"% of what matters is unmet":"fully met"}</div></div>`;
     breakEl.innerHTML=breakdownRowsHTML(segs);
   }
   function setActiveTab(key){
@@ -808,7 +809,7 @@ const App = (() => {
     statRow.innerHTML=`
       <div class="stat"><div class="k">Happiness Index</div><div class="v">${happiness}<span style="font-size:15px;color:var(--muted)">%</span></div><div class="d">${happiness>=75?"living most of your good life":happiness>=50?"a solid share of your good life":happiness>=30?"room to close the gaps":"big gaps in what matters most"}</div></div>
       <div class="stat"><div class="k">Wheel balance</div><div class="v">${balance.toFixed(1)}<span style="font-size:15px;color:var(--muted)">/10</span></div><div class="d">${balance>7?"a fairly round, smooth ride":balance>4?"a somewhat bumpy ride":"a lopsided, bumpy ride"}</div></div>
-      <div class="stat"><div class="k">Biggest gap</div><div class="v" style="color:var(--warn);font-size:20px">${topGap.cat.name}</div><div class="d">${topGap.unmet>0.1?(topGap.unmet.toFixed(1)+" of what matters here is unmet"):"fully met"}</div></div>`;
+      <div class="stat"><div class="k">Biggest gap</div><div class="v" style="color:var(--warn);font-size:20px">${topGap.cat.name}</div><div class="d">${topGap.unmet>0.1?(Math.round((1-topGap.sat/10)*100)+"% of what matters here is unmet"):"fully met"}</div></div>`;
 
     // breakdown bars mirror the wheel (shared renderer): full bar = importance
     // ceiling, solid = realized (importance × satisfaction/10), capped at the ceiling.
