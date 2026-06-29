@@ -301,7 +301,7 @@ body.mode-results .toolbar{position:static}
       <section class="card">
         <div class="section-rule" style="background:var(--accent)"></div>
         <h2>Your Good Life Wheel</h2>
-        <div class="sub">Each slice's <strong>width</strong> is how <strong>important</strong> that area is to you — the more it matters, the wider the slice. The coloured fill rises outward by how <strong>satisfied</strong> you are: a slice filled to the rim means fully satisfied, half-filled (by area) means a 5. The faint outer part of each slice is your <strong>gap</strong>.</div>
+        <div class="sub">Each slice's <strong>width</strong> is how <strong>important</strong> that area is to you — the more it matters, the wider the slice, and the <strong>% inside</strong> is its share of everything that matters to you. The coloured fill rises outward by how <strong>satisfied</strong> you are: filled to the rim means fully satisfied, half-filled (by area) means a 5. The faint outer part of each slice is your <strong>gap</strong>.</div>
         <div class="wheel-wrap">
           <svg id="wheel" viewBox="0 0 600 600" role="img" aria-label="Good Life Wheel"></svg>
           <div class="wheel-hint no-print">↑ Click any slice — or use the tabs above — to open that section's page</div>
@@ -618,9 +618,10 @@ const App = (() => {
         // faint full slice = potential (satisfaction 10); solid = realized
         s+=`<path d="${wedge(cx,cy,R,a0,a1)}" fill="${g.hex}" fill-opacity="0.13"/>`;
         s+=`<path d="${wedge(cx,cy,rFill,a0,a1)}" fill="${g.hex}" fill-opacity="0.72"/>`;
-        // satisfaction number inside the fill
-        const [tx,ty]=polar(cx,cy,Math.max(rFill-14,26),mid);
-        s+=`<text x="${tx}" y="${ty+4}" text-anchor="middle" font-size="14" font-weight="700" fill="#fff" style="paint-order:stroke" stroke="${g.hex}" stroke-width="3">${Math.round(g.sat*10)}%</text>`;
+        // importance-share number (this slice's % of the whole) — sits in the slice body
+        const impPct=Math.round(d.imp/total*100);
+        const [tx,ty]=polar(cx,cy,R*0.58,mid);
+        s+=`<text x="${tx}" y="${ty+4}" text-anchor="middle" font-size="14" font-weight="700" fill="${mixColor(g.hex,-0.4)}" style="paint-order:stroke" stroke="#fff" stroke-width="3.2">${impPct}%</text>`;
         // outer label
         const [lx,ly]=polar(cx,cy,R+24,mid);
         const anchor=(mid>8&&mid<172)?"start":(mid>188&&mid<352)?"end":"middle";
