@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Good Life Circle — Peer Coaching Exercise</title>
+<style>
+:root{
+  --ink:#1f2733; --muted:#5b6b7d; --line:#e2e8f0; --line-strong:#cbd5e1;
+  --bg:#f5f7fa; --card:#ffffff; --accent:#2e5e7e; --accent-soft:#eaf2f7;
+  --good:#2e8b57; --warn:#c0392b; --shadow:0 1px 3px rgba(16,32,48,.08),0 6px 24px rgba(16,32,48,.06);
+  --radius:14px;
+  --c1:#2e5e7e; --c2:#e07b39; --c3:#2e6b2e; --c4:#5ba3d0; --c5:#8e44ad; --c6:#6fa83d;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Segoe UI",Roboto,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  color:var(--ink); background:var(--bg); line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+.wrap{width:100%;max-width:min(1080px,100%);margin:0 auto;padding:0 clamp(14px,4vw,40px) 80px}
+.hidden{display:none !important}
+
+/* ---------- Header ---------- */
+.masthead{
+  background:linear-gradient(135deg,#26506c 0%,#2e5e7e 55%,#3a7197 100%);
+  color:#fff;padding:34px 0 28px;margin-bottom:0;border-bottom:4px solid #1c3e54;
+}
+.masthead{padding-block:clamp(20px,4vw,34px) clamp(18px,3vw,28px)}
+.masthead .wrap{padding-bottom:0}
+.brand-tag{font-size:clamp(11px,1.4vw,13px);letter-spacing:.18em;text-transform:uppercase;opacity:.82;font-weight:600}
+.masthead h1{margin:6px 0 6px;font-size:clamp(26px,5vw,34px);font-weight:700;letter-spacing:-.01em}
+.masthead p{margin:0;max-width:640px;opacity:.92;font-size:clamp(14px,1.8vw,15.5px)}
+
+/* ---------- Cards ---------- */
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:clamp(18px,3vw,26px) clamp(16px,3.2vw,28px);margin:0 0 22px;
+}
+.card h2{margin:0 0 4px;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px}
+.card h2 .num{
+  display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;
+  color:#fff;font-size:14px;font-weight:700;flex:none;
+}
+.card .sub{color:var(--muted);font-size:14px;margin:2px 0 18px}
+.section-rule{height:6px;border-radius:6px 6px 0 0;margin:calc(-1 * clamp(18px,3vw,26px)) calc(-1 * clamp(16px,3.2vw,28px)) 22px;}
+
+/* ---------- Meta inputs ---------- */
+.meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.field label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.field input{
+  width:100%;padding:11px 13px;border:1px solid var(--line-strong);border-radius:9px;font-size:15px;
+  background:#fcfdfe;color:var(--ink);transition:border-color .15s,box-shadow .15s;
+}
+.field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+
+/* ---------- Instructions ---------- */
+.howto{background:var(--accent-soft);border:1px solid #d4e6f0;border-radius:12px;padding:18px 20px;margin-top:18px}
+.howto strong{color:#1c3e54}
+.howto ol{margin:10px 0 0;padding-left:20px}
+.howto li{margin:5px 0}
+.legend{display:flex;gap:22px;flex-wrap:wrap;margin-top:14px;font-size:13.5px}
+.legend span{display:inline-flex;align-items:center;gap:8px;color:var(--muted)}
+.swatch{width:26px;height:13px;border-radius:3px;display:inline-block}
+.swatch.fill{background:var(--accent);opacity:.55}
+.swatch.outline{background:transparent;border:2px dashed var(--accent)}
+
+/* ---------- Sub-group header (for nested items) ---------- */
+.subgroup{display:flex;align-items:center;gap:10px;margin:22px 0 2px;padding:8px 0 6px}
+.subgroup .bar{width:4px;align-self:stretch;border-radius:3px;min-height:20px}
+.subgroup .name{font-size:15px;font-weight:700;letter-spacing:.01em}
+.subgroup .count{font-size:12px;color:var(--muted);font-weight:600}
+.subgroup .na-toggle{margin-left:auto}
+
+/* skip / not-applicable controls */
+.na-toggle{
+  border:1px solid var(--line-strong);background:#fff;color:var(--muted);font-size:12px;font-weight:600;
+  padding:4px 11px;border-radius:20px;cursor:pointer;white-space:nowrap;transition:.15s;line-height:1.3;
+}
+.na-toggle:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.na-toggle.off{background:#eef4f8;border-color:#bcd4e2;color:var(--accent)}
+.q-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.q.na{opacity:.55}
+.na-note{font-size:12.5px;color:var(--muted);font-style:italic;margin-top:8px;padding:8px 11px;background:#f6f8fa;border:1px dashed var(--line-strong);border-radius:8px}
+.na-toggle:disabled{opacity:.4;cursor:default;pointer-events:none}
+
+/* section lock-in */
+.lockbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+.lockhint{font-size:12.5px;color:var(--muted)}
+.lockstatus{font-weight:700;color:var(--good);display:inline-flex;align-items:center;gap:6px;font-size:14px}
+.confirmed-pill{font-size:12px;font-weight:700;color:var(--good);background:#eaf6ef;border:1px solid #bfe3cd;border-radius:20px;padding:2px 10px;margin-left:8px;vertical-align:middle}
+.card.locked{border-color:#cfe6d8;background:#fcfffe}
+.card.locked .sliders{opacity:.55}
+.card.locked input[type=range]{cursor:not-allowed}
+@media print{.lockbar{display:none !important}}
+
+/* ---------- Questions ---------- */
+.q{padding:14px 0;border-top:1px solid var(--line)}
+.q.nested{padding-left:14px;border-left:2px solid var(--line);margin-left:2px}
+.q-title{font-weight:600;font-size:15px}
+.q-hint{font-size:12.5px;color:var(--muted);margin-top:1px}
+.sliders{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:10px}
+.slider-block .slab{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:2px}
+.slider-block .val{
+  display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:24px;padding:0 7px;border-radius:7px;
+  font-size:13px;color:#fff;font-weight:700;
+}
+.val.imp{background:#5b6b7d}
+.val.sat{background:var(--accent)}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:6px;border-radius:6px;background:var(--line);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--accent);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+input[type=range].imp::-webkit-slider-thumb{border-color:#5b6b7d}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid var(--accent);cursor:pointer}
+input[type=range].imp::-moz-range-thumb{border-color:#5b6b7d}
+
+/* ---------- Toolbar ---------- */
+.toolbar{position:sticky;top:0;z-index:30;background:rgba(245,247,250,.9);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);padding:10px 0;margin-bottom:24px}
+.toolbar .wrap{padding-bottom:0;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{
+  border:1px solid var(--line-strong);background:#fff;color:var(--ink);padding:9px 15px;border-radius:9px;
+  font-size:14px;font-weight:600;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:7px;
+}
+.btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.primary:hover{background:#24506c;color:#fff}
+.btn.lg{padding:13px 26px;font-size:16px}
+.btn:disabled{opacity:.45;cursor:not-allowed;background:#fff;color:var(--muted);border-color:var(--line-strong)}
+.btn.primary:disabled{background:#aab8c4;color:#fff;border-color:#aab8c4}
+.btn.ghost{border-color:transparent;background:transparent}
+.save-state{margin-left:auto;font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.save-state .dot{width:8px;height:8px;border-radius:50%;background:var(--good)}
+
+/* ---------- Progress / finish ---------- */
+.progress-card{text-align:center}
+.pbar{height:12px;border-radius:8px;background:var(--line);overflow:hidden;margin:14px 0 6px}
+.pbar>span{display:block;height:100%;background:linear-gradient(90deg,var(--c1),var(--c4));border-radius:8px;transition:width .3s}
+.pmeta{font-size:13.5px;color:var(--muted);margin-bottom:18px}
+
+/* ---------- Wheel ---------- */
+.wheel-wrap{display:grid;grid-template-columns:1fr;gap:8px;justify-items:center}
+#wheel{width:100%;max-width:min(620px,100%);height:auto}
+.wheel-cap{font-size:13px;color:var(--muted);text-align:center;max-width:620px}
+.wip{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#a06a1f;background:#fdf3e3;border:1px solid #f0d9b5;border-radius:20px;padding:3px 11px;margin-left:8px;vertical-align:middle}
+
+/* ---------- Results ---------- */
+.results-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:4px}
+.results-head .who{font-size:15px;color:var(--muted)}
+.results-head .who b{color:var(--ink)}
+
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin:4px 0 6px}
+.stat{background:#f8fafc;border:1px solid var(--line);border-radius:11px;padding:14px 16px}
+.stat .k{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.stat .v{font-size:26px;font-weight:700;margin-top:2px}
+.stat .d{font-size:12.5px;color:var(--muted)}
+
+/* category breakdown bars */
+.breakdown{display:flex;flex-direction:column;gap:14px}
+.brow{display:grid;grid-template-columns:160px 1fr 56px;gap:14px;align-items:center}
+@media(max-width:560px){.brow{grid-template-columns:1fr;gap:4px}}
+.brow .blabel{font-weight:600;font-size:14px;display:flex;align-items:center;gap:8px}
+.brow .blabel i{width:11px;height:11px;border-radius:3px;flex:none}
+.btrack{position:relative;height:26px;background:#f1f5f9;border-radius:7px;overflow:hidden}
+.btrack .imp{position:absolute;top:0;left:0;height:100%;background:repeating-linear-gradient(45deg,#cfd8e2,#cfd8e2 6px,#dde4ec 6px,#dde4ec 12px);border-right:2px dashed #94a3b8}
+.btrack .sat{position:absolute;top:0;left:0;height:100%;border-radius:7px 0 0 7px;opacity:.85}
+.bgap{text-align:right;font-weight:700;font-size:14px}
+.bkey{display:flex;gap:18px;font-size:12.5px;color:var(--muted);margin-top:4px}
+.bkey i{display:inline-block;width:24px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:5px}
+.bkey i.imp{background:repeating-linear-gradient(45deg,#cfd8e2,#cfd8e2 6px,#dde4ec 6px,#dde4ec 12px)}
+.bkey i.sat{background:var(--accent);opacity:.85}
+
+.insight{border:1px solid var(--line);border-left-width:5px;border-radius:11px;padding:15px 18px;margin:12px 0;background:#fff}
+.insight.priority{border-left-color:var(--warn);background:#fdf6f5}
+.insight.strength{border-left-color:var(--good);background:#f4faf6}
+.insight.note{border-left-color:#7f8c9b;background:#f8fafc}
+.insight h4{margin:0 0 4px;font-size:15.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.insight .gapbadge{font-size:12px;font-weight:700;padding:2px 9px;border-radius:20px;color:#fff}
+.insight p{margin:6px 0 0;font-size:14px}
+.insight .focus{font-size:13px;color:var(--muted);margin-top:6px}
+.qlist{margin:8px 0 0;padding-left:18px;font-size:13.5px;color:var(--ink)}
+.qlist li{margin:3px 0}
+.res-h3{margin:24px 0 2px;font-size:16px}
+
+.placeholder{color:var(--muted);font-style:italic;text-align:center;padding:24px 0}
+.footer-note{text-align:center;color:var(--muted);font-size:12.5px;margin-top:30px}
+
+/* clickable wheel slices + drill-down popup */
+.wedge-hit{fill:#1f2733;fill-opacity:0;pointer-events:all;cursor:pointer;transition:fill-opacity .12s}
+.wedge-hit:hover{fill-opacity:.08}
+.wheel-hint{font-size:13px;font-weight:600;color:var(--accent);text-align:center;margin-top:2px}
+.drill-overlay{position:fixed;inset:0;background:rgba(20,30,42,.55);backdrop-filter:blur(3px);z-index:100;display:flex;align-items:flex-start;justify-content:center;padding:28px 14px;overflow:auto}
+.drill-overlay.hidden{display:none !important}
+.drill-card{background:var(--card);border-radius:16px;max-width:760px;width:100%;padding:24px clamp(16px,3vw,28px);box-shadow:0 24px 70px rgba(0,0,0,.32);margin:auto}
+.drill-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:4px}
+.drill-head h2{margin:0;font-size:clamp(18px,3vw,21px);font-weight:700}
+@media print{.drill-overlay{display:none !important}}
+
+/* tabbed result pages + animated transitions */
+body.mode-results .toolbar{position:static}
+.tabbar{position:sticky;top:0;z-index:40;display:flex;gap:6px;overflow-x:auto;padding:9px 4px;margin-bottom:18px;background:rgba(245,247,250,.93);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.tab{flex:0 0 auto;border:1px solid var(--line-strong);background:#fff;color:var(--muted);font-size:13.5px;font-weight:600;padding:8px 14px;border-radius:9px;cursor:pointer;white-space:nowrap;transition:.15s;display:inline-flex;align-items:center;gap:7px}
+.tab:hover{color:var(--ink);border-color:var(--accent)}
+.tab.active{color:#fff;border-color:transparent}
+.tab .dot{width:9px;height:9px;border-radius:50%;flex:none}
+.tab.active .dot{background:#fff !important}
+#pages{position:relative}
+.page{display:none}
+.page.active{display:block}
+@keyframes pgInFwd{from{opacity:0;transform:translateX(34px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes pgInBack{from{opacity:0;transform:translateX(-34px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes pgOut{from{opacity:1}to{opacity:0;transform:scale(.975)}}
+.page-enter-fwd{animation:pgInFwd .34s cubic-bezier(.22,.61,.36,1)}
+.page-enter-back{animation:pgInBack .34s cubic-bezier(.22,.61,.36,1)}
+.page-leave{animation:pgOut .22s ease forwards}
+@media (prefers-reduced-motion:reduce){.page-enter-fwd,.page-enter-back,.page-leave{animation:none}}
+@media print{.tabbar{display:none !important}.page{display:block !important}#pages{position:static}.page-leave{display:none !important}}
+
+/* ---------- Print ---------- */
+@media print{
+  :root{--shadow:none}
+  body{background:#fff}
+  .toolbar,.howto,input[type=range],.btn,.no-print{display:none !important}
+  .masthead{background:#2e5e7e !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:18px 0}
+  .card{break-inside:avoid;box-shadow:none;border:1px solid #ccc;page-break-inside:avoid}
+  .wrap{max-width:100%;padding:0 16px}
+  .section-rule,.swatch,.val,.insight,.stat,.masthead,.btrack,.bkey i,.brow .blabel i{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body class="mode-form">
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="brand-tag">Peer Coaching · Living the Good Life</div>
+    <h1>The Good Life Circle</h1>
+    <p>A whole-person inventory of what matters to you — and how satisfied you feel right now. Your answers reveal where life feels balanced, and where there's a gap worth a conversation.</p>
+  </div>
+</header>
+
+<div class="toolbar no-print">
+  <div class="wrap">
+    <button class="btn ghost" onclick="App.reset()">↺ Start over</button>
+    <span class="save-state"><span class="dot"></span><span id="saveLabel">Progress saved automatically</span></span>
+  </div>
+</div>
+
+<!-- ================= FORM VIEW ================= -->
+<div class="wrap" id="view-form">
+
+  <section class="card">
+    <h2>Getting started</h2>
+    <div class="meta-grid">
+      <div class="field"><label for="pName">Your name</label><input id="pName" type="text" placeholder="Full name" oninput="App.touch()"></div>
+      <div class="field"><label for="pDate">Today's date</label><input id="pDate" type="date" oninput="App.touch()"></div>
+    </div>
+    <div class="howto no-print">
+      <strong>How it works</strong>
+      <ol>
+        <li>Work through the <strong>6 areas of life</strong> below. For each item, set two sliders:</li>
+        <li><strong>Importance</strong> — in your ideal happy life, how much does this matter? <em>(0 = don't need it · 10 = essential)</em></li>
+        <li><strong>Satisfaction</strong> — how happy are you with this <em>right now?</em> <em>(0 = very dissatisfied · 10 = fully satisfied)</em></li>
+        <li>Use the <strong>first number that pops into your head</strong> — not the number you think it <em>should</em> be.</li>
+        <li>When you're done, hit <strong>See my results</strong> at the bottom for your wheel and personalized insights — then <strong>Download PDF Report</strong> to save or share it. Your progress saves automatically as you go, so you can close this and come back.</li>
+      </ol>
+    </div>
+  </section>
+
+  <div id="sections"></div>
+
+  <section class="card progress-card">
+    <h2 style="justify-content:center">Ready when you are</h2>
+    <div class="pbar"><span id="pbarFill" style="width:0%"></span></div>
+    <div class="pmeta" id="pbarMeta">0 of 0 items answered</div>
+    <button class="btn primary lg" id="seeResultsBtn" onclick="App.showResults()" disabled>See my results →</button>
+    <div class="pmeta" id="seeResultsHint" style="margin:10px 0 0"></div>
+  </section>
+
+</div>
+
+<!-- ================= RESULTS VIEW ================= -->
+<div class="wrap hidden" id="view-results">
+
+  <section class="card" id="resultsTop">
+    <div class="results-head">
+      <h2 style="margin:0">Good Life Circle — Results</h2>
+      <div class="who"><span id="rName"></span><span id="rDate"></span></div>
+    </div>
+    <div class="no-print" style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn" onclick="App.showForm()">← Back to edit</button>
+      <button class="btn primary" onclick="App.downloadPDF()">Download PDF Report</button>
+    </div>
+  </section>
+
+  <!-- tab bar -->
+  <div class="tabbar no-print" id="tabBar"></div>
+
+  <div id="pages">
+
+    <!-- ===== OVERVIEW PAGE ===== -->
+    <div class="page active" id="page-overview">
+      <section class="card">
+        <div class="section-rule" style="background:var(--accent)"></div>
+        <h2>Your Good Life Wheel</h2>
+        <div class="sub">The <strong>dashed line</strong> in each wedge is your <strong>importance</strong> for that area — its ceiling. The <strong>solid fill's area</strong> equals the share of that ceiling you've met: satisfaction 5 fills half the wedge's area, 10 fills it completely. The faint area between is your <strong>gap</strong>.</div>
+        <div class="wheel-wrap">
+          <svg id="wheel" viewBox="0 0 600 600" role="img" aria-label="Good Life Wheel"></svg>
+          <div class="wheel-hint no-print">↑ Click any slice — or use the tabs above — to open that section's page</div>
+          <div class="wheel-cap">Coloured area = the good life you've realized; the faint area out to each dashed line = what that area could give you if fully met. The more of the wheel you've filled toward its ceilings, the higher your Happiness Index.</div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-rule" style="background:var(--c5)"></div>
+        <h2>At a glance</h2>
+        <div class="summary-grid" id="statRow"></div>
+        <p id="naNote" class="sub" style="margin:14px 0 0"></p>
+      </section>
+
+      <section class="card">
+        <div class="section-rule" style="background:var(--c4)"></div>
+        <h2>Where the gaps are, by area</h2>
+        <div class="sub">Each bar's full length is your <strong>importance</strong> for that area (its ceiling); the solid fill is what you've <strong>realized</strong> — satisfaction relative to that ceiling. The patterned remainder is the unmet gap. Sorted biggest gap first.</div>
+        <div class="breakdown" id="breakdown"></div>
+        <div class="bkey"><span><i class="imp"></i>Importance (ceiling)</span><span><i class="sat"></i>Realized</span><span><i style="width:18px;height:11px;border-radius:3px;display:inline-block;border:1px solid var(--line-strong)"></i>Empty = beyond what you need</span></div>
+      </section>
+
+      <section class="card">
+        <div class="section-rule" style="background:var(--c2)"></div>
+        <h2>What your results suggest</h2>
+        <div class="sub">Reflections drawn from the gaps between what matters to you and how satisfied you feel.</div>
+        <div id="insights"></div>
+      </section>
+    </div>
+
+    <!-- ===== SECTION PAGES (generated) ===== -->
+    <div id="sectionPages"></div>
+
+  </div>
+
+  <p class="footer-note">The Good Life Circle · Peer Coaching Exercise. Your answers stay on this device — nothing is uploaded.</p>
+
+</div>
+
+<script>
+/* ============================================================
+   DATA — 6 categories. Subcategories may contain nested items
+   (Basic Needs & Relational Needs); those items are each rated.
+   ============================================================ */
+const CATEGORIES = [
+  { id:"basic", name:"Basic Needs", full:"Basic Needs — Money & Life Resources", color:"var(--c1)", hex:"#2e5e7e",
+    subs:[
+      {t:"Financial Stability", items:[
+        {t:"Self-Sufficiency"}, {t:"Savings / Retirement"}, {t:"Estate Planning"}, {t:"Debt Management"} ]},
+      {t:"Household Management", items:[
+        {t:"Organizing, cleaning & maintenance", h:"incl. home improvement"}, {t:"Bill Pay"} ]},
+      {t:"Food Management", h:"Meal planning, purchasing, preparing"},
+      {t:"Transportation", h:"Car maintenance, cleaning, getting where you need to go"},
+      {t:"Clothing", h:"Purchasing, cleaning, maintaining"},
+    ]},
+  { id:"relational", name:"Relational Needs", full:"Relational Needs", color:"var(--c2)", hex:"#e07b39",
+    subs:[
+      {t:"Family", items:[
+        {t:"Family Planning", optional:true}, {t:"Sibling & Family Relationships"},
+        {t:"Parents Are Cared For", optional:true}, {t:"Family Traditions / Gatherings"}, {t:"Forgiveness"} ]},
+      {t:"Children", groupOptional:true, items:[
+        {t:"Children's Safety / Childcare"}, {t:"Children Happy & Healthy"} ]},
+      {t:"Partner / Marriage", groupOptional:true, items:[
+        {t:"Trust"}, {t:"Safety & Comfort"}, {t:"Respect", h:"are you proud of your partner?"}, {t:"Open Communication"},
+        {t:"Emotional Intimacy", h:"listening & sharing without judgement"}, {t:"Physical Intimacy", h:"cuddling, sex, kissing, etc."},
+        {t:"Focused Time Together"}, {t:"Romance"}, {t:"Fun"} ]},
+      {t:"Friendship", items:[
+        {t:"Time Together"}, {t:"Authentic Connections"}, {t:"Fun"}, {t:"Peer & Social Pressures"} ]},
+      {t:"Community", items:[
+        {t:"Sense of Belonging", h:"neighborhood, church, clubs, etc."},
+        {t:"Better-World Needs", h:"sustainability, climate, global issues"},
+        {t:"Volunteerism", h:"giving back, helping others, altruism"} ]},
+    ]},
+  { id:"mind", name:"Mind & Spirit", full:"Mind / Spiritual / Self-Development Needs", color:"var(--c3)", hex:"#2e6b2e",
+    subs:[
+      {t:"Mindfulness / Meditation", h:"Presence, calm, reflection"},
+      {t:"Growth Mindset", h:"Openness to learning and change"},
+      {t:"Self-Esteem & Self-Image", h:"Confidence and how you see yourself"},
+      {t:"Rituals", h:"Meaningful routines and practices"},
+      {t:"Beliefs & Values", h:"Living in line with what you believe"},
+      {t:"Church / Spiritual Practice", h:"Faith or spiritual community"},
+    ]},
+  { id:"health", name:"Health & Body", full:"Health & Body Needs", color:"var(--c4)", hex:"#5ba3d0",
+    subs:[
+      {t:"Physical Health & Fitness", h:"Exercise and strength"},
+      {t:"Sexual Health & Identity"},
+      {t:"Nutritious Diet", h:"Eating in a way that fuels you"},
+      {t:"Healthcare Needs Met", h:"Access to the care you need"},
+      {t:"Chronic Conditions", h:"Managing ongoing health issues"},
+      {t:"Mental Health Needs Met"},
+      {t:"Proper Sleep", h:"Rest and recovery"},
+    ]},
+  { id:"work", name:"Work & Career", full:"Work / Career Needs (incl. parenting, volunteering)", color:"var(--c5)", hex:"#8e44ad",
+    subs:[
+      {t:"Spark", h:"Energy and excitement for what you do"},
+      {t:"Affirmation of Worth", h:"Feeling valued"},
+      {t:"Job Satisfaction"},
+      {t:"Projects", h:"Meaningful work in progress"},
+      {t:"Continuing to Learn", h:"Growing your skills"},
+      {t:"Achievement", h:"Progress toward goals"},
+      {t:"Work Environment", h:"The space and culture you work in"},
+    ]},
+  { id:"explore", name:"Exploration", full:"Exploration / Adventure / Creative Needs", color:"var(--c6)", hex:"#6fa83d",
+    subs:[
+      {t:"Travel", h:"Seeing new places"},
+      {t:"Discovery / Novelty", h:"New experiences and ideas"},
+      {t:"Time in Nature", h:"Outdoors and awe"},
+      {t:"Hobbies", h:"Creative and recreational pursuits"},
+      {t:"Concerts / Music", h:"Art and culture you love"},
+    ]},
+];
+
+/* Flatten each category into rateable leaves with a stable key + path. */
+const LEAVES = {};
+CATEGORIES.forEach(cat=>{
+  const arr=[];
+  cat.subs.forEach((sub,si)=>{
+    const groupKey = (sub.items && sub.groupOptional) ? `${cat.id}_${si}` : null;
+    if(sub.items){ sub.items.forEach((it,ii)=>arr.push({key:`${si}_${ii}`, sub:sub.t, title:it.t, hint:it.h||"", optional:!!it.optional, groupKey})); }
+    else { arr.push({key:`${si}`, sub:null, title:sub.t, hint:sub.h||"", optional:!!sub.optional, groupKey:null}); }
+  });
+  LEAVES[cat.id]=arr;
+});
+const TOTAL_LEAVES = Object.values(LEAVES).reduce((a,l)=>a+l.length,0);
+
+const TIPS = {
+  basic:"Stability frees up energy for everything else. Pick the single most stressful item — bills, debt, the messy garage — and define one small, concrete step you could take this week.",
+  relational:"Relationships are usually the biggest lever on day-to-day happiness. Which one relationship, if it improved, would lift the most? Name one act of connection you can offer it.",
+  mind:"Inner life is easy to postpone and quietly draining when neglected. Protect a small, regular ritual — even 10 minutes — that reconnects you to your values.",
+  health:"The body is the platform everything else runs on. Choose the one habit (sleep, movement, food, or a care appointment) with the biggest knock-on effect and start absurdly small.",
+  work:"You spend enormous hours here, so a gap compounds. Identify what specifically drains or sparks you — autonomy, recognition, growth, or environment — and aim your next move at that.",
+  explore:"Awe, play and novelty refill the tank that work and duty empty. Put one thing you genuinely look forward to on the calendar — small and soon beats big and someday.",
+};
+const REFLECTION_QS = [
+  "Are there any surprises for you in your wheel?",
+  "What would a score of 10 look like in this area?",
+  "How do you currently spend time here — and how would you like to?",
+  "What help or support might you need from others to feel more satisfied?",
+  "What is the smallest step you could take to get started this week?",
+];
+
+/* ============================================================ */
+const STORAGE_KEY = "goodLifeCircle.v2";
+const App = (() => {
+  let state = { name:"", date:"", scores:{}, naGroups:{}, locked:{} };
+  const defScore = () => ({imp:5, sat:5, touched:false});
+
+  function buildSections(){
+    const root = document.getElementById("sections");
+    root.innerHTML = "";
+    CATEGORIES.forEach((cat,ci)=>{
+      state.scores[cat.id] = state.scores[cat.id] || {};
+      const locked = !!state.locked[cat.id];
+      const card = document.createElement("section");
+      card.className = "card" + (locked?" locked":"");
+      card.id = `card-${cat.id}`;
+      let html = `<div class="section-rule" style="background:${cat.color}"></div>
+        <h2><span class="num" style="background:${cat.color}">${ci+1}</span>${cat.full}${locked?` <span class="confirmed-pill">✓ Confirmed</span>`:''}</h2>
+        <div class="sub">Rate each item for how <strong>important</strong> it is to you and how <strong>satisfied</strong> you are right now.</div>`;
+      cat.subs.forEach((sub,si)=>{
+        if(sub.items){
+          const gkey=`${cat.id}_${si}`, groupOpt=!!sub.groupOptional, groupNA=groupOpt&&!!state.naGroups[gkey];
+          html += `<div class="subgroup">
+                    <span class="bar" style="background:${cat.color}"></span>
+                    <span class="name">${sub.t}</span><span class="count">${sub.items.length} items</span>
+                    ${groupOpt?`<button class="na-toggle ${groupNA?'off':''}" ${locked?'disabled':''} onclick="App.toggleGroup('${cat.id}',${si})">${groupNA?'Doesn’t apply — include it':'This doesn’t apply to me'}</button>`:''}
+                  </div>`;
+          if(groupNA){
+            html += `<div class="na-note">Marked “doesn’t apply to me” — these ${sub.items.length} items are excluded from your results.</div>`;
+          } else {
+            sub.items.forEach((it,ii)=>{ html += qRow(cat,`${si}_${ii}`,it.t,it.h,true,!!it.optional,locked); });
+          }
+        } else {
+          html += qRow(cat,`${si}`,sub.t,sub.h,false,!!sub.optional,locked);
+        }
+      });
+      html += `<div class="lockbar ${locked?'on':''}">
+        ${locked
+          ? `<span class="lockstatus">✓ Section confirmed &amp; locked</span><button class="btn ghost" onclick="App.toggleLock('${cat.id}')">Edit answers</button>`
+          : `<button class="btn primary" onclick="App.toggleLock('${cat.id}')">Confirm &amp; lock this section</button><span class="lockhint">Counts your answers above — including any left at 5. You can edit later.</span>`}
+      </div>`;
+      card.innerHTML = html;
+      root.appendChild(card);
+    });
+    updateProgress();
+  }
+
+  function qRow(cat,key,title,hint,nested,optional,locked){
+    state.scores[cat.id][key] = state.scores[cat.id][key] || defScore();
+    const sc = state.scores[cat.id][key];
+    const na = !!sc.na;
+    return `
+      <div class="q ${nested?'nested':''} ${na?'na':''}">
+        <div class="q-head">
+          <div>
+            <div class="q-title">${title}</div>
+            ${hint?`<div class="q-hint">${hint}</div>`:""}
+          </div>
+          ${optional?`<button class="na-toggle ${na?'off':''}" ${locked?'disabled':''} onclick="App.toggleItem('${cat.id}','${key}')">${na?'Include':'Not applicable'}</button>`:''}
+        </div>
+        ${na ? `<div class="na-note">Not applicable — excluded from your results.</div>` : `
+        <div class="sliders">
+          <div class="slider-block">
+            <div class="slab"><span>Importance</span><span class="val imp" id="vimp-${cat.id}-${key}">${sc.imp}</span></div>
+            <input type="range" class="imp" ${locked?'disabled':''} min="0" max="10" step="1" value="${sc.imp}" oninput="App.set('${cat.id}','${key}','imp',this.value)">
+          </div>
+          <div class="slider-block">
+            <div class="slab"><span>Satisfaction</span><span class="val sat" id="vsat-${cat.id}-${key}" style="background:${cat.color}">${sc.sat}</span></div>
+            <input type="range" class="sat" ${locked?'disabled':''} min="0" max="10" step="1" value="${sc.sat}" oninput="App.set('${cat.id}','${key}','sat',this.value)">
+          </div>
+        </div>`}
+      </div>`;
+  }
+
+  function toggleItem(catId,key){ state.scores[catId][key].na = !state.scores[catId][key].na; save(); buildSections(); }
+  function toggleGroup(catId,si){ const k=`${catId}_${si}`; state.naGroups[k]=!state.naGroups[k]; save(); buildSections(); }
+  function toggleLock(catId){
+    state.locked[catId]=!state.locked[catId];
+    save(); buildSections();
+    const el=document.getElementById(`card-${catId}`); if(el) el.scrollIntoView({block:"nearest",behavior:"instant"});
+  }
+  function isNA(catId,leaf){
+    const sc=state.scores[catId][leaf.key];
+    if(sc&&sc.na) return true;
+    if(leaf.groupKey&&state.naGroups[leaf.groupKey]) return true;
+    return false;
+  }
+
+  function set(catId,key,kind,val){
+    val=+val; const sc=state.scores[catId][key];
+    sc[kind]=val; sc.touched=true;
+    document.getElementById(`v${kind}-${catId}-${key}`).textContent=val;
+    save(); updateProgress();
+  }
+
+  function naCountTotal(){ let na=0; CATEGORIES.forEach(c=>LEAVES[c.id].forEach(l=>{ if(isNA(c.id,l)) na++; })); return na; }
+  function updateProgress(){
+    const total=CATEGORIES.length;
+    const confirmed=CATEGORIES.filter(c=>state.locked[c.id]).length;
+    const pct=Math.round(confirmed/total*100);
+    const allDone=confirmed===total;
+    const f=document.getElementById("pbarFill"), m=document.getElementById("pbarMeta");
+    if(f) f.style.width=pct+"%";
+    if(m) m.textContent=`${confirmed} of ${total} sections confirmed`+(allDone?" — you're ready to see your results":" — confirm each section once you're happy with your answers");
+    const btn=document.getElementById("seeResultsBtn"), hint=document.getElementById("seeResultsHint");
+    if(btn) btn.disabled=!allDone;
+    if(hint) hint.textContent = allDone ? "" : `Confirm all ${total} sections to unlock your results (${total-confirmed} to go).`;
+  }
+
+  // Averages only count a category once it's confirmed/locked; then every
+  // non-applicable-excluded item counts (a deliberate 5 is a real 5).
+  function catAverages(cat){
+    if(!state.locked[cat.id]) return {imp:0, sat:0, answered:0, applicable:0, confirmed:false};
+    const leaves=LEAVES[cat.id].filter(l=>!isNA(cat.id,l));
+    if(!leaves.length) return {imp:0, sat:0, answered:0, applicable:0, confirmed:true};
+    const avg=k=>leaves.reduce((a,l)=>a+state.scores[cat.id][l.key][k],0)/leaves.length;
+    return {imp:avg("imp"), sat:avg("sat"), answered:leaves.length, applicable:leaves.length, confirmed:true};
+  }
+  function biggestGapLeaf(cat){
+    let best=null;
+    LEAVES[cat.id].forEach(l=>{
+      if(isNA(cat.id,l)) return;
+      const sc=state.scores[cat.id][l.key];
+      const gap=sc.imp-sc.sat;
+      if(!best||gap>best.gap) best={name:l.sub?`${l.sub} › ${l.title}`:l.title, gap, imp:sc.imp, sat:sc.sat};
+    });
+    return best;
+  }
+
+  /* ---------- Views ---------- */
+  function showResults(){
+    if(CATEGORIES.some(c=>!state.locked[c.id])){ updateProgress(); return; }
+    save();
+    document.getElementById("rName").textContent = state.name?state.name:"";
+    document.getElementById("rDate").textContent = state.date?(state.name?"  ·  ":"")+formatDate(state.date):"";
+    render();
+    resetToOverview();
+    document.getElementById("view-form").classList.add("hidden");
+    document.getElementById("view-results").classList.remove("hidden");
+    document.body.className="mode-results";
+    window.scrollTo({top:0,behavior:"instant"});
+  }
+  function showForm(){
+    document.getElementById("view-results").classList.add("hidden");
+    document.getElementById("view-form").classList.remove("hidden");
+    document.body.className="mode-form";
+    window.scrollTo({top:0,behavior:"instant"});
+  }
+  function formatDate(d){ try{ return new Date(d+"T00:00").toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"}); }catch(e){ return d; } }
+
+  /* ---------- Wheel ---------- */
+  function render(){ drawWheel(); drawResults(); }
+  function polar(cx,cy,r,deg){ const a=(deg-90)*Math.PI/180; return [cx+r*Math.cos(a),cy+r*Math.sin(a)]; }
+  function wedge(cx,cy,r,a0,a1){ const [x0,y0]=polar(cx,cy,r,a0),[x1,y1]=polar(cx,cy,r,a1); const l=(a1-a0)>180?1:0; return `M ${cx} ${cy} L ${x0} ${y0} A ${r} ${r} 0 ${l} 1 ${x1} ${y1} Z`; }
+  function arc(cx,cy,r,a0,a1){ const [x0,y0]=polar(cx,cy,r,a0),[x1,y1]=polar(cx,cy,r,a1); const l=(a1-a0)>180?1:0; return `M ${x0} ${y0} A ${r} ${r} 0 ${l} 1 ${x1} ${y1}`; }
+
+  // Generic wheel: segs = [{label, hex, imp, sat, answered}]. opts.onClick(i) → adds clickable hit areas.
+  function renderWheel(svg, segs, opts={}){
+    const cx=300,cy=300,R=220,n=segs.length,seg=360/n; let s="";
+    for(let i=1;i<=10;i++){ const rr=R*i/10; s+=`<circle cx="${cx}" cy="${cy}" r="${rr}" fill="none" stroke="${i%5===0?'#c3cfdb':'#e8eef4'}" stroke-width="${i%5===0?1.4:1}"/>`; }
+    segs.forEach((g,i)=>{
+      const a0=i*seg,a1=a0+seg,mid=a0+seg/2; const answered=(g.answered!==false)&&g.imp>0; const dim=answered?"1":"0.3";
+      if(answered){
+        const rImp=R*g.imp/10;
+        const rFill=rImp*Math.sqrt(g.sat/10);   // √ so filled AREA = satisfaction share of the ceiling
+        s+=`<path d="${wedge(cx,cy,rImp,a0,a1)}" fill="${g.hex}" fill-opacity="0.13" opacity="${dim}"/>`;
+        s+=`<path d="${wedge(cx,cy,rFill,a0,a1)}" fill="${g.hex}" fill-opacity="0.72" opacity="${dim}"/>`;
+        s+=`<path d="${arc(cx,cy,rImp,a0,a1)}" fill="none" stroke="${g.hex}" stroke-width="2.4" stroke-dasharray="5 4"/>`;
+        const [tx,ty]=polar(cx,cy,Math.max(rFill-13,24),mid);
+        s+=`<text x="${tx}" y="${ty+4}" text-anchor="middle" font-size="14" font-weight="700" fill="#fff" style="paint-order:stroke" stroke="${g.hex}" stroke-width="3">${g.sat.toFixed(1)}</text>`;
+      }
+      const [lx,ly]=polar(cx,cy,R+24,mid);
+      const anchor=(mid>10&&mid<170)?"start":(mid>190&&mid<350)?"end":"middle";
+      const wrap=opts.labelWrap||11;
+      const words=g.label.split(" "); let lines=[g.label];
+      if(g.label.length>wrap&&words.length>1){ const mp=Math.ceil(words.length/2); lines=[words.slice(0,mp).join(" "),words.slice(mp).join(" ")]; }
+      const fs=opts.labelSize||14.5; const dy0=lines.length>1?-3:5;
+      s+=`<text x="${lx}" y="${ly}" text-anchor="${anchor}" font-size="${fs}" font-weight="700" fill="${g.hex}">`;
+      lines.forEach((ln,k)=>{ s+=`<tspan x="${lx}" dy="${k===0?dy0:15}">${ln}</tspan>`; }); s+=`</text>`;
+    });
+    // divider spokes on top
+    for(let i=0;i<n;i++){ const [sx,sy]=polar(cx,cy,R,i*seg); s+=`<line x1="${cx}" y1="${cy}" x2="${sx}" y2="${sy}" stroke="#cdd7e1" stroke-width="1.2"/>`; }
+    s+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#9fb0c0" stroke-width="2"/>`;
+    s+=`<circle cx="${cx}" cy="${cy}" r="3" fill="#7f8c9b"/>`;
+    s+=`<text x="${cx-7}" y="${cy-10}" font-size="11" fill="#9aa7b4" text-anchor="end">0</text>`;
+    s+=`<text x="${cx-7}" y="${cy-R+14}" font-size="11" fill="#9aa7b4" text-anchor="end">10</text>`;
+    // clickable hit wedges last, so they sit on top
+    if(opts.onClick){
+      segs.forEach((g,i)=>{ const a0=i*seg,a1=a0+seg; s+=`<path class="wedge-hit" d="${wedge(cx,cy,R,a0,a1)}" onclick="${opts.onClick}(${i})"><title>${g.label} — click to open</title></path>`; });
+    }
+    svg.innerHTML=s;
+  }
+
+  function drawWheel(){
+    const segs=CATEGORIES.map(cat=>{ const a=catAverages(cat); return {label:cat.name, hex:cat.hex, imp:a.imp, sat:a.sat, answered:a.answered>0}; });
+    renderWheel(document.getElementById("wheel"), segs, {onClick:"App.openDrillByIndex"});
+  }
+
+  /* ---------- Colour helpers (tints/shades of a base hue) ---------- */
+  function hexToRgb(h){ h=h.replace('#',''); return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]; }
+  function rgbToHex(r,g,b){ return '#'+[r,g,b].map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join(''); }
+  function mixColor(hex,f){ const [r,g,b]=hexToRgb(hex); if(f>=0){ return rgbToHex(r+(255-r)*f,g+(255-g)*f,b+(255-b)*f);} const k=1+f; return rgbToHex(r*k,g*k,b*k); }
+  function shades(hex,n){ if(n<=1) return [hex]; const lo=-0.30, hi=0.40, out=[]; for(let i=0;i<n;i++){ out.push(mixColor(hex, lo+(hi-lo)*(i/(n-1)))); } return out; }
+
+  /* ---------- Subcategory data for drill-down ---------- */
+  function subSegments(cat){
+    const out=[];
+    cat.subs.forEach((sub,si)=>{
+      if(sub.items){
+        if(sub.groupOptional && state.naGroups[`${cat.id}_${si}`]) return;
+        const used=sub.items.map((it,ii)=>state.scores[cat.id][`${si}_${ii}`]).filter(sc=>!sc.na);
+        if(!used.length) return;
+        out.push({label:sub.t, imp:used.reduce((a,s)=>a+s.imp,0)/used.length, sat:used.reduce((a,s)=>a+s.sat,0)/used.length});
+      } else {
+        const sc=state.scores[cat.id][`${si}`]; if(sc.na) return;
+        out.push({label:sub.t, imp:sc.imp, sat:sc.sat});
+      }
+    });
+    return out;
+  }
+
+  /* ---------- Shared breakdown-bar renderer ---------- */
+  function breakdownRowsHTML(rows){
+    return rows.map(r=>({...r, unmet:r.imp-(r.imp*r.sat/10)})).sort((a,b)=>b.unmet-a.unmet).map(r=>{
+      const impW=r.imp*10, realizedW=r.imp*r.sat, u=r.unmet;
+      const col=u>=4?"#c0392b":u>=2.5?"#d97b29":u>=1?"#caa12a":"#2e8b57";
+      return `<div class="brow">
+        <div class="blabel"><i style="background:${r.hex}"></i>${r.label}</div>
+        <div class="btrack"><div class="imp" style="width:${impW}%"></div><div class="sat" style="width:${realizedW}%;background:${r.hex}"></div></div>
+        <div class="bgap" style="color:${col}">${u>0.1?"−"+u.toFixed(1):"✓"}</div>
+      </div>`;
+    }).join("");
+  }
+
+  /* ---------- Tabbed pages + drill-down ---------- */
+  let activeTab="overview";
+  const TAB_ORDER=["overview", ...CATEGORIES.map(c=>c.id)];
+
+  function buildTabsAndPages(){
+    const bar=document.getElementById("tabBar"); if(!bar) return;
+    let html=`<button class="tab" data-tab="overview" data-color="#2e5e7e" onclick="App.switchTab('overview')"><span class="dot" style="background:#2e5e7e"></span>Overview</button>`;
+    CATEGORIES.forEach(c=>{ html+=`<button class="tab" data-tab="${c.id}" data-color="${c.hex}" onclick="App.switchTab('${c.id}')"><span class="dot" style="background:${c.hex}"></span>${c.name}</button>`; });
+    bar.innerHTML=html;
+    document.getElementById("sectionPages").innerHTML=CATEGORIES.map(sectionPageHTML).join("");
+    setActiveTab("overview");
+  }
+  function sectionPageHTML(c){
+    return `<div class="page" id="page-${c.id}">
+      <section class="card">
+        <div class="section-rule" style="background:${c.color}"></div>
+        <button class="btn no-print" style="margin-bottom:14px" onclick="App.switchTab('overview')">← Back to overview</button>
+        <h2>${c.full}</h2>
+        <div class="sub">The subcategories of <strong>${c.name}</strong>, drawn the same way — the dashed line is importance (the ceiling), the solid area is what you've realized. Each wedge is one subcategory.</div>
+        <div class="wheel-wrap"><svg id="swheel-${c.id}" viewBox="-60 -10 720 620" role="img" aria-label="${c.name} subcategory wheel"></svg></div>
+      </section>
+      <section class="card">
+        <div class="section-rule" style="background:${c.color}"></div>
+        <h2>At a glance — ${c.name}</h2>
+        <div class="summary-grid" id="sstats-${c.id}"></div>
+      </section>
+      <section class="card">
+        <div class="section-rule" style="background:${c.color}"></div>
+        <h2>Subcategory breakdown</h2>
+        <div class="sub">Sorted by the biggest gap between importance and what you've realized.</div>
+        <div class="breakdown" id="sbreak-${c.id}"></div>
+        <div class="bkey"><span><i class="imp"></i>Importance (ceiling)</span><span><i class="sat"></i>Realized</span></div>
+      </section>
+    </div>`;
+  }
+  function renderSectionPage(cat){
+    const wheelEl=document.getElementById("swheel-"+cat.id), statsEl=document.getElementById("sstats-"+cat.id), breakEl=document.getElementById("sbreak-"+cat.id);
+    if(!wheelEl) return;
+    const subs=subSegments(cat);
+    if(!subs.length){ wheelEl.innerHTML=""; statsEl.innerHTML=`<div class="placeholder" style="grid-column:1/-1">Every subcategory here was marked “not applicable”.</div>`; breakEl.innerHTML=""; return; }
+    const cols=shades(cat.hex, subs.length);
+    const segs=subs.map((sg,i)=>({label:sg.label, hex:cols[i], imp:sg.imp, sat:sg.sat, answered:true}));
+    renderWheel(wheelEl, segs, {labelWrap:9, labelSize:13});
+    const sumImp=segs.reduce((a,d)=>a+d.imp,0);
+    const realized=segs.reduce((a,d)=>a+d.imp*(d.sat/10),0);
+    const happ=sumImp>0?Math.round(realized/sumImp*100):0;
+    const top=segs.map(d=>({...d,unmet:d.imp-(d.imp*d.sat/10)})).sort((a,b)=>b.unmet-a.unmet)[0];
+    statsEl.innerHTML=`
+      <div class="stat"><div class="k">Section Happiness</div><div class="v">${happ}<span style="font-size:15px;color:var(--muted)">%</span></div><div class="d">within ${cat.name}</div></div>
+      <div class="stat"><div class="k">Biggest gap here</div><div class="v" style="color:var(--warn);font-size:18px">${top.label}</div><div class="d">${top.unmet>0.1?top.unmet.toFixed(1)+" of what matters is unmet":"fully met"}</div></div>`;
+    breakEl.innerHTML=breakdownRowsHTML(segs);
+  }
+  function setActiveTab(key){
+    document.querySelectorAll("#tabBar .tab").forEach(t=>{
+      const on=t.dataset.tab===key;
+      t.classList.toggle("active",on);
+      t.style.background = on ? t.dataset.color : "";
+    });
+  }
+  function resetToOverview(){
+    activeTab="overview";
+    document.querySelectorAll("#pages .page").forEach(p=>{ p.classList.remove("active","page-leave","page-enter-fwd","page-enter-back"); p.style.display="none"; p.style.position=""; p.style.top=p.style.left=p.style.right=""; });
+    const ov=document.getElementById("page-overview"); if(ov){ ov.style.display="block"; ov.classList.add("active"); }
+    setActiveTab("overview");
+  }
+  function switchTab(key){
+    if(key===activeTab) return;
+    const next=document.getElementById("page-"+key); if(!next) return;
+    const cur=document.getElementById("page-"+activeTab);
+    const dir = TAB_ORDER.indexOf(key) < TAB_ORDER.indexOf(activeTab) ? "back" : "fwd";
+    setActiveTab(key);
+    if(cur && cur!==next){
+      cur.style.position="absolute"; cur.style.top="0"; cur.style.left="0"; cur.style.right="0";
+      cur.classList.remove("page-enter-fwd","page-enter-back");
+      cur.classList.add("page-leave");
+      cur.addEventListener("animationend", function h(){ cur.classList.remove("active","page-leave"); cur.style.display="none"; cur.style.position=cur.style.top=cur.style.left=cur.style.right=""; cur.removeEventListener("animationend",h); }, {once:true});
+    }
+    next.style.display="block";
+    next.classList.add("active");
+    next.classList.remove("page-enter-fwd","page-enter-back","page-leave");
+    void next.offsetWidth; // restart animation
+    next.classList.add(dir==="back"?"page-enter-back":"page-enter-fwd");
+    next.addEventListener("animationend", function h(){ next.classList.remove("page-enter-fwd","page-enter-back"); next.removeEventListener("animationend",h); }, {once:true});
+    activeTab=key;
+    const bar=document.getElementById("tabBar"); if(bar) bar.scrollIntoView({block:"start",behavior:"smooth"});
+  }
+  function openDrillByIndex(i){ const cat=CATEGORIES[i]; if(cat) switchTab(cat.id); }
+
+  /* ---------- Results / breakdown / insights ---------- */
+  function drawResults(){
+    const data=CATEGORIES.map(cat=>{ const a=catAverages(cat); return {cat,...a,gap:a.imp-a.sat,unmet:a.imp-(a.imp*a.sat/10)}; });
+    const active=data.filter(d=>d.answered>0);
+    const statRow=document.getElementById("statRow");
+    const breakdown=document.getElementById("breakdown");
+    const insights=document.getElementById("insights");
+    const naEl=document.getElementById("naNote");
+    if(naEl){
+      const naCount=naCountTotal();
+      const unconfirmed=CATEGORIES.filter(c=>!state.locked[c.id]);
+      const parts=[];
+      if(naCount) parts.push(`${naCount} item${naCount>1?'s':''} marked “not applicable”`);
+      if(unconfirmed.length) parts.push(`${unconfirmed.length} section${unconfirmed.length>1?'s':''} not yet confirmed (${unconfirmed.map(c=>c.name).join(', ')})`);
+      naEl.textContent = parts.length ? parts.join(" · ")+" — excluded from these results." : "";
+    }
+
+    if(!active.length){
+      statRow.innerHTML=`<div class="placeholder" style="grid-column:1/-1">No confirmed sections yet — go back and confirm at least one section to see your results.</div>`;
+      breakdown.innerHTML=""; insights.innerHTML="";
+      return;
+    }
+    // Importance-weighted happiness: realized (imp × sat/10) as a share of achievable (imp).
+    const sumImp = active.reduce((a,d)=>a+d.imp,0);
+    const realized = active.reduce((a,d)=>a+d.imp*(d.sat/10),0);
+    const happiness = sumImp>0 ? Math.round(realized/sumImp*100) : 0;
+    const avgSat=active.reduce((a,d)=>a+d.sat,0)/active.length;
+    const variance=active.reduce((a,d)=>a+(d.sat-avgSat)**2,0)/active.length;
+    const balance=Math.max(0,10-Math.sqrt(variance)*2);
+    const topGap=[...active].sort((a,b)=>b.unmet-a.unmet)[0];
+
+    statRow.innerHTML=`
+      <div class="stat"><div class="k">Happiness Index</div><div class="v">${happiness}<span style="font-size:15px;color:var(--muted)">%</span></div><div class="d">${happiness>=75?"living most of your good life":happiness>=50?"a solid share of your good life":happiness>=30?"room to close the gaps":"big gaps in what matters most"}</div></div>
+      <div class="stat"><div class="k">Wheel balance</div><div class="v">${balance.toFixed(1)}<span style="font-size:15px;color:var(--muted)">/10</span></div><div class="d">${balance>7?"a fairly round, smooth ride":balance>4?"a somewhat bumpy ride":"a lopsided, bumpy ride"}</div></div>
+      <div class="stat"><div class="k">Biggest gap</div><div class="v" style="color:var(--warn);font-size:20px">${topGap.cat.name}</div><div class="d">${topGap.unmet>0.1?(topGap.unmet.toFixed(1)+" of what matters here is unmet"):"fully met"}</div></div>`;
+
+    // breakdown bars mirror the wheel (shared renderer): full bar = importance
+    // ceiling, solid = realized (importance × satisfaction/10), capped at the ceiling.
+    breakdown.innerHTML=breakdownRowsHTML(active.map(d=>({label:d.cat.name, hex:d.cat.hex, imp:d.imp, sat:d.sat})));
+
+    const priorities=active.filter(d=>d.gap>=2&&d.imp>=5).sort((a,b)=>b.gap-a.gap);
+    const strengths=active.filter(d=>d.sat>=7&&d.imp>=5).sort((a,b)=>b.sat-a.sat);
+    const lowPriority=active.filter(d=>d.imp<4);
+
+    let html="";
+    if(priorities.length){
+      html+=`<h3 class="res-h3">Where to focus — high importance, lower satisfaction</h3>`;
+      priorities.forEach(d=>{
+        const sub=biggestGapLeaf(d.cat);
+        const col=d.gap>=4?"#c0392b":d.gap>=3?"#d97b29":"#caa12a";
+        html+=`<div class="insight priority">
+          <h4>${d.cat.name}<span class="gapbadge" style="background:${col}">gap ${d.gap.toFixed(1)}</span></h4>
+          <p>You rated this <strong>${d.imp.toFixed(1)}/10</strong> important but only <strong>${d.sat.toFixed(1)}/10</strong> satisfied — the kind of gap that quietly weighs on you.</p>
+          ${sub&&sub.gap>0?`<div class="focus">Biggest single driver here: <strong>${sub.name}</strong> (important ${sub.imp}, satisfied ${sub.sat}).</div>`:""}
+          <p>${TIPS[d.cat.id]}</p>
+        </div>`;
+      });
+    } else {
+      html+=`<div class="insight strength"><h4>Nicely aligned</h4><p>No area shows a large gap between importance and satisfaction — your priorities and your reality are fairly in step. Use the breakdown above to spot the small adjustments worth making.</p></div>`;
+    }
+    if(strengths.length){
+      html+=`<h3 class="res-h3">What's working — lean on these strengths</h3>`;
+      strengths.slice(0,3).forEach(d=>{
+        html+=`<div class="insight strength"><h4>${d.cat.name}</h4>
+          <p>Important to you (${d.imp.toFixed(1)}/10) <em>and</em> satisfying (${d.sat.toFixed(1)}/10). Notice what makes this work — the same ingredients often transfer to weaker areas.</p></div>`;
+      });
+    }
+    if(lowPriority.length){
+      const names=lowPriority.map(d=>d.cat.name).join(", ");
+      html+=`<div class="insight note" style="margin-top:22px"><h4>Lower priority — and that's fine</h4>
+        <p>You rated <strong>${names}</strong> low in importance. A low satisfaction score there isn't a problem to fix — balance is personal. Don't spend energy on areas that don't matter to you.</p></div>`;
+    }
+    html+=`<div class="insight note" style="margin-top:22px"><h4>Questions to take into your coaching conversation</h4>
+      ${priorities.length?`<p>Bring your top focus area — <strong>${priorities[0].cat.name}</strong> — and explore:</p>`:`<p>Take your wheel into the conversation and explore:</p>`}
+      <ul class="qlist">${REFLECTION_QS.map(q=>`<li>${q}</li>`).join("")}</ul></div>`;
+    insights.innerHTML=html;
+
+    // render each section's own page (sub-wheels) so tab switches are instant
+    CATEGORIES.forEach(renderSectionPage);
+  }
+
+  /* ---------- Persistence ---------- */
+  let saveTimer=null;
+  function save(){
+    state.name=document.getElementById("pName").value;
+    state.date=document.getElementById("pDate").value;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const l=document.getElementById("saveLabel"); if(l){ l.textContent="Saving…"; clearTimeout(saveTimer); saveTimer=setTimeout(()=>{l.textContent="Saved automatically";},400); }
+  }
+  function touch(){ save(); }
+  function load(){
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(raw){ try{ const s=JSON.parse(raw); if(s&&s.scores) state=Object.assign({name:"",date:"",scores:{},naGroups:{},locked:{}},s); if(!state.naGroups) state.naGroups={}; if(!state.locked) state.locked={}; }catch(e){} }
+    buildSections();
+    document.getElementById("pName").value=state.name||"";
+    document.getElementById("pDate").value=state.date||new Date().toISOString().slice(0,10);
+  }
+  // Produce a PDF of the results via the browser's print-to-PDF.
+  // We set a clean document title so the saved file defaults to a sensible name.
+  function downloadPDF(){
+    const original=document.title;
+    const name=(state.name||"Good Life Circle").trim();
+    document.title=`${name} - Good Life Circle Results${state.date?" ("+state.date+")":""}`;
+    window.print();
+    setTimeout(()=>{ document.title=original; },500);
+  }
+  function reset(){
+    if(!confirm("Clear all answers and start over? This can't be undone.")) return;
+    localStorage.removeItem(STORAGE_KEY);
+    state={name:"",date:new Date().toISOString().slice(0,10),scores:{},naGroups:{},locked:{}};
+    buildSections();
+    document.getElementById("pName").value=""; document.getElementById("pDate").value=state.date;
+    showForm();
+  }
+
+  return { set, touch, toggleItem, toggleGroup, toggleLock, switchTab, openDrillByIndex, showResults, showForm, downloadPDF, reset, init(){ load(); buildTabsAndPages(); } };
+})();
+
+document.addEventListener("DOMContentLoaded", App.init);
+</script>
+</body>
+</html>
