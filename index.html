@@ -216,8 +216,11 @@ body.mode-results .toolbar{position:static}
 @media print{.tabbar{display:none !important}.page{display:block !important}#pages{position:static}.page-leave{display:none !important}}
 
 /* all-subsections wheel */
-#allWheel .sub-slice{transition:transform .18s cubic-bezier(.34,1.4,.5,1);cursor:pointer}
+#allWheel .sub-slice{cursor:pointer}
 #allWheel .sub-hit{fill:#000;fill-opacity:0;cursor:pointer}
+#subHover{transform-origin:300px 300px}
+@keyframes subPop{from{transform:scale(.9);opacity:.4}to{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){#subHover{animation:none !important}}
 .allinfo{margin-top:6px;min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:3px}
 .allinfo-hint{color:var(--muted);font-size:13px;font-style:italic}
 .allinfo .ai-name{font-size:17px;font-weight:700;display:inline-flex;align-items:center;gap:9px}
@@ -817,28 +820,44 @@ const App = (() => {
       s+=`<text x="${lx}" y="${ly}" text-anchor="${anchor}" font-size="14" font-weight="700" fill="${v.hex}">`;
       lines.forEach((ln,k)=>{ s+=`<tspan x="${lx}" dy="${k===0?dy0:15}">${ln}</tspan>`; }); s+=`</text>`;
     });
-    // transparent hit wedges on top with hover handlers
+    // transparent hit wedges with hover handlers
     items.forEach(d=>{ s+=`<path class="sub-hit" d="${wedge(cx,cy,R,d.a0,d.a1)}" onmouseenter="App.hoverSub(${d.idx})" onmouseleave="App.unhoverSub()" onclick="App.switchTab('${d.sectionId}')"></path>`; });
+    // overlay layer (on top, non-interactive) where the hovered slice is redrawn larger
+    s+=`<g id="subHover" style="pointer-events:none"></g>`;
 
     svg.innerHTML=s;
     unhoverSub();
   }
   function hoverSub(i){
     const d=allSubData[i]; if(!d) return;
-    const cx=300,cy=300, dist=20, rad=(d.mid-90)*Math.PI/180;
-    const dx=Math.cos(rad)*dist, dy=Math.sin(rad)*dist;
-    allSubData.forEach(o=>{ const g=document.getElementById("ss-"+o.idx); if(g){ g.style.transform=""; g.style.opacity=(o.idx===i)?"1":"0.45"; } });
-    const g=document.getElementById("ss-"+i); if(g){ g.style.transform=`translate(${dx}px,${dy}px) scale(1.08)`; }
-    const impPct=Math.round(d.imp/allSubData.reduce((a,o)=>a+o.imp,0)*100);
-    const gapPct=Math.round((1-d.sat/10)*100);
-    document.getElementById("allHoverInfo").innerHTML=
-      `<div class="ai-sec">${d.sectionName}</div>
-       <div class="ai-name"><span class="dot" style="background:${d.hex}"></span>${d.label}</div>
-       <div class="ai-stats"><span class="ai-imp"><b>${impPct}%</b> of what matters</span> &nbsp;·&nbsp; <span class="ai-gap"><b>${gapPct}%</b> gap</span></div>`;
+    const cx=300,cy=300,R=220;
+    const sweep=d.a1-d.a0;
+    const newSweep=Math.min(Math.max(sweep*1.55,15),42);   // widen the angle (bigger % of the pie)
+    const na0=d.mid-newSweep/2, na1=d.mid+newSweep/2;
+    const nR=R*1.13;                                        // taller too
+    const rFill=nR*Math.sqrt(d.sat/10);
+    const rad=(d.mid-90)*Math.PI/180, dx=Math.cos(rad)*12, dy=Math.sin(rad)*12;  // small explode
+    const nameCol=mixColor(d.hex,-0.42);
+    const total=allSubData.reduce((a,o)=>a+o.imp,0);
+    const impPct=Math.round(d.imp/total*100), gapPct=Math.round((1-d.sat/10)*100);
+    // label position: just beyond the outer edge, on the correct side
+    const [lx,ly]=polar(cx,cy,nR+14,d.mid);
+    const right=(d.mid<=180);
+    const anchor=right?"start":"end";
+    const tx=lx+dx, ty=ly+dy;
+    let g=`
+      <path d="${wedge(cx,cy,nR,na0,na1)}" fill="${d.hex}" fill-opacity="0.18" transform="translate(${dx} ${dy})"/>
+      <path d="${wedge(cx,cy,rFill,na0,na1)}" fill="${d.hex}" fill-opacity="0.85" stroke="#fff" stroke-width="1.5" transform="translate(${dx} ${dy})"/>
+      <text x="${tx}" y="${ty}" text-anchor="${anchor}" style="paint-order:stroke" stroke="#fff" stroke-width="3.4" stroke-linejoin="round">
+        <tspan x="${tx}" dy="0" font-size="11.5" font-weight="700" fill="#7a8794" letter-spacing="0.4">${d.sectionName.toUpperCase()}</tspan>
+        <tspan x="${tx}" dy="17" font-size="16" font-weight="700" fill="${nameCol}">${d.label}</tspan>
+        <tspan x="${tx}" dy="18" font-size="13" font-weight="700" fill="#2e5e7e">${impPct}% of what matters</tspan>
+        <tspan x="${tx}" dy="16" font-size="13" font-weight="700" fill="#c0392b">${gapPct}% gap</tspan>
+      </text>`;
+    const ov=document.getElementById("subHover"); if(ov){ ov.innerHTML=g; ov.style.animation="none"; void ov.getBoundingClientRect(); ov.style.animation="subPop .18s cubic-bezier(.34,1.5,.5,1)"; }
   }
   function unhoverSub(){
-    allSubData.forEach(o=>{ const g=document.getElementById("ss-"+o.idx); if(g){ g.style.transform=""; g.style.opacity="1"; } });
-    const info=document.getElementById("allHoverInfo"); if(info) info.innerHTML=`<span class="allinfo-hint">Hover a slice to see its name, importance and gap.</span>`;
+    const ov=document.getElementById("subHover"); if(ov) ov.innerHTML="";
   }
 
   function setActiveTab(key){
